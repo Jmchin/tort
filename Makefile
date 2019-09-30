@@ -1,5 +1,5 @@
-CFLAGS =
-LIBS = -lm
+CFLAGS = `guile-config compile`
+LIBS = `guile-config link`
 
 .PHONE: clean build run
 
@@ -12,7 +12,7 @@ run: tort
 	./tort
 
 tort: tort.o
-	gcc $< -o $@ $(LIBS)
+	gcc $< -o $@ -lm $(LIBS)
 
 tort.o: tort.c
 	gcc -c $< -o $@ $(CFLAGS)

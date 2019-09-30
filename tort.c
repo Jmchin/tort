@@ -1,3 +1,4 @@
+#include <libguile.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -98,17 +99,20 @@ tortoise_move(double length)
 
 }
 
+static void*
+register_functions(void* data)
+{
+  return NULL;
+}
+
 int
 main(int argc, char* argv[])
 {
   global_output = start_gnuplot();
   tortoise_reset();
-  int i;
-  tortoise_pendown();
-  for (i = 1; i <= 4; ++i)
-  {
-    tortoise_move(3.0);
-    tortoise_turn(90.0);
-  }
+
+  scm_with_guile(&register_functions, NULL);
+  scm_shell(argc, argv);
+
   return EXIT_SUCCESS;
 }
