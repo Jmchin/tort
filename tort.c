@@ -53,7 +53,7 @@ draw_line(FILE* output, double x1, double y1, double x2, double y2)
          x1, x2 - x1, y1, y2 - y1);
   fflush(output);
 }
-static void
+static SCM
 tortoise_reset()
 {
   x = y = 0.0;
@@ -63,33 +63,42 @@ tortoise_reset()
   fprintf(global_output, "clear\n");
   fflush(global_output);
 
+  return SCM_UNSPECIFIED;
+
 }
 
-static void
+static SCM
 tortoise_pendown()
 {
+  SCM result = scm_from_bool(pendown);
   pendown = 1;
+  return result;
 }
 
-static void
+static SCM
 tortoise_penup()
 {
+  SCM result = scm_from_bool(pendown);
   pendown = 0;
+  return result;
 }
 
-static void
-tortoise_turn(double degrees)
+static SCM
+tortoise_turn(SCM degrees)
 {
-  direction += M_PI / 180.0 * degrees;
+  const double value = scm_to_double(degrees);
+  direction += M_PI / 180.0 * value;
+  return scm_from_double(direction * 180.0 / M_PI);
 }
 
-static void
-tortoise_move(double length)
+static SCM
+tortoise_move(SCM length)
 {
+  const double value = scm_to_double(length);
   double newX, newY;
 
-  newX = x + length * cos(direction);
-  newY = y + length * sin(direction);
+  newX = x + value * cos(direction);
+  newY = y + value * sin(direction);
 
   if (pendown)
     draw_line(global_output, x, y, newX, newY);
@@ -97,11 +106,25 @@ tortoise_move(double length)
   x = newX;
   y = newY;
 
+  return scm_list_2(scm_from_double(x), scm_from_double(y));
+
 }
 
 static void*
 register_functions(void* data)
 {
+  /* make our tortoise functions visible to guile
+     (<scheme-function-name>,
+     <num-required-args,
+     <num-optional-args>,
+     <rest-list?>,
+     <C-func>)
+  */
+  scm_c_define_gsubr("tortoise-reset", 0, 0, 0, &tortoise_reset);
+  scm_c_define_gsubr("tortoise-penup", 0, 0, 0, &tortoise_penup);
+  scm_c_define_gsubr("tortoise-pendown", 0, 0, 0, &tortoise_pendown);
+  scm_c_define_gsubr("tortoise-turn", 1, 0, 0, &tortoise_turn);
+  scm_c_define_gsubr("tortoise-move", 1, 0, 0, &tortoise_move);
   return NULL;
 }
 
